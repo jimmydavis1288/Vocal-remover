@@ -57,7 +57,7 @@ def separate_job(job: JobRecord) -> JobRecord:
             "--device",
             job.device,
             "--segment",
-            "8",
+            "7",
             "-j",
             "1",
             "--out",
