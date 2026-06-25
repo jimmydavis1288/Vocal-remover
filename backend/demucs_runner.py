@@ -56,6 +56,10 @@ def separate_job(job: JobRecord) -> JobRecord:
             "htdemucs",
             "--device",
             job.device,
+            "--segment",
+            "8",
+            "-j",
+            "1",
             "--out",
             str(demucs_out),
             str(input_path),
@@ -127,4 +131,3 @@ def separate_job(job: JobRecord) -> JobRecord:
             status="The AI engine could not finish this file.",
             error=str(exc),
         )
-
