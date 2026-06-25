@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+frontend/node_modules/
+frontend/dist/
+
+backend/jobs/*
+!backend/jobs/.gitkeep
+
+.env
+.DS_Store
