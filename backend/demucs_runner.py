@@ -10,6 +10,7 @@ from pathlib import Path
 from utils import JobRecord, create_zip, job_dir, run_command, update_job
 
 logger = logging.getLogger("separator")
+DEMUCS_MODEL = "mdx_extra"
 
 
 def _copy_stem(source: Path, target: Path) -> None:
@@ -53,7 +54,7 @@ def separate_job(job: JobRecord) -> JobRecord:
             "-m",
             "demucs.separate",
             "-n",
-            "htdemucs",
+            DEMUCS_MODEL,
             "--device",
             job.device,
             "--segment",
@@ -73,7 +74,7 @@ def separate_job(job: JobRecord) -> JobRecord:
             raise RuntimeError(stderr) from exc
 
         update_job(job, progress=75, status="Creating instrumental...")
-        track_dir = demucs_out / "htdemucs" / input_path.stem
+        track_dir = demucs_out / DEMUCS_MODEL / input_path.stem
         stem_paths = {
             "vocals.wav": outputs_dir / "vocals.wav",
             "bass.wav": outputs_dir / "bass.wav",

@@ -94,7 +94,10 @@ def metadata_path(job_id: str) -> Path:
 
 
 def save_job(job: JobRecord) -> None:
-    metadata_path(job.job_id).write_text(json.dumps(asdict(job), indent=2), encoding="utf-8")
+    path = metadata_path(job.job_id)
+    temp_path = path.with_suffix(".json.tmp")
+    temp_path.write_text(json.dumps(asdict(job), indent=2), encoding="utf-8")
+    temp_path.replace(path)
 
 
 def load_job(job_id: str) -> JobRecord:
