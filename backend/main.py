@@ -26,7 +26,11 @@ logger = logging.getLogger("separator")
 
 app = FastAPI(title="Demucs Vocal Separator", version="1.0.0")
 
-DEFAULT_FRONTEND_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+DEFAULT_FRONTEND_ORIGINS = (
+    "http://localhost:5173,"
+    "http://127.0.0.1:5173,"
+    "https://vocal-remover-beta-pink.vercel.app"
+)
 frontend_origins = [
     origin.strip()
     for origin in os.getenv("FRONTEND_ORIGINS", DEFAULT_FRONTEND_ORIGINS).split(",")
