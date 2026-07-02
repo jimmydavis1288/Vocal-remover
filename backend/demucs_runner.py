@@ -19,7 +19,9 @@ def _copy_stem(source: Path, target: Path) -> None:
     shutil.copy2(source, target)
 
 
-def _combine_instrumental(bass: Path, drums: Path, other: Path, output: Path) -> None:
+def _combine_instrumental(
+    bass: Path, drums: Path, other: Path, output: Path, log_path: Path | None = None
+) -> None:
     command = [
         "ffmpeg",
         "-y",
@@ -35,7 +37,7 @@ def _combine_instrumental(bass: Path, drums: Path, other: Path, output: Path) ->
         "pcm_s16le",
         str(output),
     ]
-    run_command(command)
+    run_command(command, log_path=log_path)
 
 
 def separate_job(job: JobRecord) -> JobRecord:
@@ -68,10 +70,18 @@ def separate_job(job: JobRecord) -> JobRecord:
 
         update_job(job, progress=35, status="Separating stems...")
         try:
-            run_command(command)
+            # write demucs stdout/stderr to a job-level log for debugging
+            run_command(command, log_path=root / "demucs.log")
         except subprocess.CalledProcessError as exc:
-            stderr = exc.stderr[-1200:] if exc.stderr else "Demucs failed without stderr output."
-            raise RuntimeError(stderr) from exc
+            output = ""
+            if exc.stderr:
+                output = exc.stderr
+            elif exc.stdout:
+                output = exc.stdout
+            else:
+                output = "Demucs failed without output."
+            excerpt = output[-1200:]
+            raise RuntimeError(excerpt) from exc
 
         update_job(job, progress=75, status="Creating instrumental...")
         track_dir = demucs_out / DEMUCS_MODEL / input_path.stem
@@ -85,11 +95,13 @@ def separate_job(job: JobRecord) -> JobRecord:
             _copy_stem(track_dir / filename, target)
 
         instrumental = outputs_dir / "instrumental.wav"
+        # Persist ffmpeg combine logs to job directory for debugging
         _combine_instrumental(
             stem_paths["bass.wav"],
             stem_paths["drums.wav"],
             stem_paths["other.wav"],
             instrumental,
+            log_path=root / "ffmpeg-combine.log",
         )
 
         update_job(job, progress=92, status="Saving files...")

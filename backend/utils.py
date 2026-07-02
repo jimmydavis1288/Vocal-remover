@@ -115,15 +115,35 @@ def update_job(job: JobRecord, **changes: object) -> JobRecord:
     return job
 
 
-def run_command(command: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_command(
+    command: list[str], cwd: Path | None = None, log_path: Path | None = None
+) -> subprocess.CompletedProcess[str]:
     logger.info("Running command: %s", " ".join(command))
-    return subprocess.run(
+    result = subprocess.run(
         command,
         cwd=str(cwd) if cwd else None,
-        check=True,
         capture_output=True,
         text=True,
     )
+    if log_path:
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(f"\n=== COMMAND: {' '.join(command)} ===\n")
+                if result.stdout:
+                    f.write("=== STDOUT ===\n")
+                    f.write(result.stdout)
+                if result.stderr:
+                    f.write("\n=== STDERR ===\n")
+                    f.write(result.stderr)
+                f.write(f"\n=== RETURN CODE: {result.returncode} ===\n")
+        except Exception:
+            logger.exception("Failed to write log to %s", log_path)
+    if result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, command, output=result.stdout, stderr=result.stderr
+        )
+    return result
 
 
 def get_audio_duration(path: Path) -> float | None:
